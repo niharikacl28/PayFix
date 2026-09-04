@@ -1,0 +1,159 @@
+Total failed: 294  Unrecovered: 294
+
+Category distribution: {'temporary_network': 56, 'insufficient_funds': 78, 'suspected_fraud': 30, 'unknown': 52, 'recurring_mandate_failure': 29, 'expired_card': 11, 'permanent_decline': 38}
+
+================================================================================
+PAYMENT 1: pay_syn_00334_8b90
+================================================================================
+--- 1. SNAPSHOT ---
+amount                  : 9181 (type int)
+failure_category        : temporary_network
+failure_reason          : UPI collect request expired
+retry_count             : 2
+customer_contact_count  : 22
+risk_level              : low
+payment_method          : wallet
+available_methods       : ['wallet', 'upi']
+is_retryable            : True
+successful_payment_count: 0
+failed_payment_count    : 0
+
+--- 2. DIAGNOSIS ---
+failure_category        : FailureCategory.TEMPORARY_FAILURE
+confidence              : 0.9
+eligible_strategy_names : ['alternate_payment_method', 'human_escalation', 'stop']
+
+--- 3. ELIGIBILITY ---
+  retry_now                      eligible=False
+  retry_later                    eligible=False
+  payment_link                   eligible=False
+  alternate_payment_method       eligible=True
+  customer_reminder              eligible=False
+  human_escalation               eligible=True
+  stop                           eligible=True
+
+--- 4. SIMULATOR OUTCOMES ---
+  alternate_payment_method       prob=0.290 expected=2662.49
+  human_escalation               prob=0.140 expected=1285.34
+  stop                           prob=0.000 expected=0.00
+
+--- 5. OPTIMIZER ---
+selected_strategy       : alternate_payment_method
+  ranked: alternate_payment_method       prob=0.290 expected=2662.49
+  ranked: human_escalation               prob=0.140 expected=1285.34
+  ranked: stop                           prob=0.000 expected=0.00
+
+--- 6. EXECUTOR (top ranked, guardrails bypassed) ---
+strategy                : alternate_payment_method
+success_probability     : 0.29
+simulated_outcome       : simulated_no_recovery
+recovered_amount        : 0.0
+execution_allowed       : True
+
+================================================================================
+PAYMENT 2: pay_syn_00392_3939
+================================================================================
+--- 1. SNAPSHOT ---
+amount                  : 2570 (type int)
+failure_category        : insufficient_funds
+failure_reason          : Card limit reached for the day
+retry_count             : 2
+customer_contact_count  : 31
+risk_level              : low
+payment_method          : upi
+available_methods       : ['upi', 'card']
+is_retryable            : True
+successful_payment_count: 12
+failed_payment_count    : 2
+
+--- 2. DIAGNOSIS ---
+failure_category        : FailureCategory.INSUFFICIENT_FUNDS
+confidence              : 0.9
+eligible_strategy_names : ['alternate_payment_method', 'human_escalation', 'stop']
+
+--- 3. ELIGIBILITY ---
+  retry_now                      eligible=False
+  retry_later                    eligible=False
+  payment_link                   eligible=False
+  alternate_payment_method       eligible=True
+  customer_reminder              eligible=False
+  human_escalation               eligible=True
+  stop                           eligible=True
+
+--- 4. SIMULATOR OUTCOMES ---
+  alternate_payment_method       prob=0.410 expected=1053.70
+  human_escalation               prob=0.190 expected=488.30
+  stop                           prob=0.000 expected=0.00
+
+--- 5. OPTIMIZER ---
+selected_strategy       : alternate_payment_method
+  ranked: alternate_payment_method       prob=0.410 expected=1053.70
+  ranked: human_escalation               prob=0.190 expected=488.30
+  ranked: stop                           prob=0.000 expected=0.00
+
+--- 6. EXECUTOR (top ranked, guardrails bypassed) ---
+strategy                : alternate_payment_method
+success_probability     : 0.41
+simulated_outcome       : simulated_no_recovery
+recovered_amount        : 0.0
+execution_allowed       : True
+
+================================================================================
+PAYMENT 3: pay_syn_00142_c7f3
+================================================================================
+--- 1. SNAPSHOT ---
+amount                  : 8121 (type int)
+failure_category        : suspected_fraud
+failure_reason          : Velocity limits exceeded at issuer
+retry_count             : 0
+customer_contact_count  : 1
+risk_level              : high
+payment_method          : wallet
+available_methods       : ['wallet', 'upi']
+is_retryable            : False
+successful_payment_count: 13
+failed_payment_count    : 2
+
+--- 2. DIAGNOSIS ---
+failure_category        : FailureCategory.SUSPECTED_FRAUD
+confidence              : 0.9
+eligible_strategy_names : ['human_escalation', 'stop']
+
+--- 3. ELIGIBILITY ---
+  retry_now                      eligible=False
+  retry_later                    eligible=False
+  payment_link                   eligible=False
+  alternate_payment_method       eligible=False
+  customer_reminder              eligible=False
+  human_escalation               eligible=True
+  stop                           eligible=True
+
+--- 4. SIMULATOR OUTCOMES ---
+  human_escalation               prob=0.200 expected=1624.20
+  stop                           prob=0.000 expected=0.00
+
+--- 5. OPTIMIZER ---
+selected_strategy       : human_escalation
+  ranked: human_escalation               prob=0.200 expected=1624.20
+  ranked: stop                           prob=0.000 expected=0.00
+
+--- 6. EXECUTOR (top ranked, guardrails bypassed) ---
+strategy                : human_escalation
+success_probability     : 0.2
+simulated_outcome       : simulated_human_review_queued
+recovered_amount        : 0.0
+execution_allowed       : True
+
+================================================================================
+AGGREGATE: top-ranked strategy would clear threshold for how many?
+================================================================================
+Top-ranked by strategy: {'alternate_payment_method': 190, 'human_escalation': 104}
+Would recover if executed: 0
+Would recover by category: {}
+
+Per-strategy: how often does simulator produce prob >= 0.50?
+  alternate_payment_method       prob>=0.50 in 0/190 outcomes, max_prob=0.490
+  human_escalation               prob>=0.50 in 0/241 outcomes, max_prob=0.400
+  retry_later                    prob>=0.50 in 0/42 outcomes, max_prob=0.460
+  retry_now                      prob>=0.50 in 0/42 outcomes, max_prob=0.270
+  stop                           prob>=0.50 in 0/294 outcomes, max_prob=0.000
