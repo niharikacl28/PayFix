@@ -163,7 +163,7 @@ export default function Dashboard({ onSelectPayment }) {
             <div className="value neutral">{formatINR(ev.revenue_at_risk)}</div>
             <div className="delta">{formatInt(ev.payments_evaluated)} failed payments · across the synthetic batch</div>
           </div>
-          <div className="hero-stat">
+          <div className="hero-stat focal">
             <span className="label">PayFix recovered</span>
             <div className="value positive">{formatINR(ev.payfix_recovered)}</div>
             <div className="delta">{formatPct(ev.payfix_recovery_rate)} of at-risk revenue</div>
@@ -223,7 +223,7 @@ export default function Dashboard({ onSelectPayment }) {
         <div className="card uplift-card">
           <div className="card-head">
             <div>
-              <h3>Uplift over baseline</h3>
+              <h3><span className="icon-badge"><Icon name="ai" size={14} /></span> Uplift over baseline</h3>
               <p>Additional revenue PayFix recovered vs. naive retry.</p>
             </div>
           </div>
@@ -309,7 +309,7 @@ export default function Dashboard({ onSelectPayment }) {
       <section className="cases-table">
         <div className="cases-header">
           <div>
-            <h3>Representative recovery cases</h3>
+            <h3><span className="icon-badge"><Icon name="queue" size={14} /></span> Representative recovery cases</h3>
             <p>
               Six illustrative payments from the backend's demo dataset.
               Click any row to see the full AI decision for that payment — diagnosis, simulation, guardrails, and execution.

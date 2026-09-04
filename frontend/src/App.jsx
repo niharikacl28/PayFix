@@ -11,7 +11,7 @@ function Sidebar({ activeView, onChange }) {
         <div className="brand-mark" />
         <div className="brand-text">
           <strong>PayFix</strong>
-          <span>Revenue Recovery</span>
+          <span>AI Revenue Recovery</span>
         </div>
       </div>
       <nav className="nav">
