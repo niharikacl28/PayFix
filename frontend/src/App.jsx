@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { Icon } from "./Icon.jsx";
+import AIDecisions from "./AIDecisions.jsx";
 import Dashboard from "./Dashboard.jsx";
+import Guardrails from "./Guardrails.jsx";
 import PaymentDetail from "./PaymentDetail.jsx";
+import RecoveryQueue from "./RecoveryQueue.jsx";
 import { api } from "./api.js";
 
 function Sidebar({ activeView, onChange }) {
@@ -131,10 +134,7 @@ export default function App() {
             subtitle="Representative cases from the backend demo dataset. Click any row to see the full AI decision."
             right={<span className="sim-notice"><span className="sim-dot" />Simulation mode</span>}
           />
-          <ComingSoon
-            title="Recovery queue"
-            message="The same cases shown on the dashboard are also accessible here. Use the Dashboard to browse."
-          />
+          <RecoveryQueue onSelectPayment={selectPayment} />
         </>
       );
     }
@@ -146,10 +146,7 @@ export default function App() {
             subtitle="Diagnoses, simulations, and final actions taken by PayFix across the representative cases."
             right={<span className="sim-notice"><span className="sim-dot" />Simulation mode</span>}
           />
-          <ComingSoon
-            title="AI decisions"
-            message="Open any payment from the dashboard to inspect its full AI decision in detail."
-          />
+          <AIDecisions />
         </>
       );
     }
@@ -161,10 +158,7 @@ export default function App() {
             subtitle="The deterministic safety checks every PayFix decision passes through before execution."
             right={<span className="sim-notice"><span className="sim-dot" />Simulation mode</span>}
           />
-          <ComingSoon
-            title="Guardrails"
-            message="Open any payment to see the guardrail checklist for that specific recovery action."
-          />
+          <Guardrails />
         </>
       );
     }

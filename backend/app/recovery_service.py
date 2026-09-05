@@ -168,6 +168,8 @@ class RecoveryService:
         execution: SimulatedExecutionResult,
         selection_reason: str,
     ) -> None:
+        import json
+
         payment_id = payment["payment_id"]
         self.repository.create_recovery_attempt(
             RecoveryAttempt(
@@ -211,4 +213,21 @@ class RecoveryService:
                 recovered_amount=execution.recovered_amount,
                 created_at=execution.timestamp,
             )
+        )
+        # Persist an immutable snapshot of the *original* decision so the
+        # read-only GET /decision endpoint can reproduce it without
+        # re-running diagnosis/optimization against the mutated payment row.
+        # This is the only writer of decision_snapshots. POST /recover's
+        # idempotency contract is unchanged: the snapshot is replaced only
+        # when a fresh attempt is actually executed, never on a replay.
+        self.repository.create_decision_snapshot(
+            payment_id,
+            json.dumps(diagnosis.to_dict()),
+            json.dumps(optimization.to_dict()),
+            outcome.strategy,
+            outcome.expected_recovered_amount,
+            selection_reason,
+            json.dumps(guardrail.to_dict()),
+            json.dumps(execution.to_dict()),
+            execution.timestamp,
         )

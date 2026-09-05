@@ -81,6 +81,23 @@ CREATE TABLE IF NOT EXISTS audit_logs (
 
 CREATE INDEX IF NOT EXISTS idx_audit_logs_payment
     ON audit_logs (payment_id, created_at);
+
+-- Immutable snapshot of the original decision recorded when a POST /recover
+-- executes. Used by the read-only GET /decision endpoint so re-opening a
+-- recovered payment does not recompute diagnosis/optimization against the
+-- mutated row. One row per payment; written only by RecoveryService.
+CREATE TABLE IF NOT EXISTS decision_snapshots (
+    payment_id TEXT PRIMARY KEY,
+    diagnosis_json TEXT NOT NULL,
+    optimization_json TEXT NOT NULL,
+    selected_strategy TEXT NOT NULL,
+    expected_recovered_amount NUMERIC NOT NULL CHECK(expected_recovered_amount >= 0),
+    selection_reason TEXT NOT NULL,
+    guardrail_json TEXT NOT NULL,
+    execution_json TEXT NOT NULL,
+    created_at TEXT NOT NULL,
+    FOREIGN KEY (payment_id) REFERENCES payments(payment_id) ON DELETE CASCADE
+);
 """
 
 

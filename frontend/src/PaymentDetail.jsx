@@ -221,7 +221,10 @@ export default function PaymentDetail({ paymentId, initialDecision, onBack }) {
   const load = async () => {
     setState({ status: "loading", decision: null, error: null });
     try {
-      const decision = await api.recover(paymentId);
+      // Read-only inspection: opening/reloading this page must NOT trigger a
+      // new recovery and must NOT mutate the database. The response shape is
+      // identical to the RecoveryDecision.to_dict() payload.
+      const decision = await api.getDecision(paymentId);
       setState({ status: "ready", decision, error: null });
     } catch (err) {
       setState({ status: "error", decision: null, error: err });

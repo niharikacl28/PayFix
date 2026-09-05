@@ -142,3 +142,64 @@ class PayFixRepository:
                 (payment_id,),
             ).fetchall()
         return [_row_to_dict(row) for row in rows]
+
+    def create_decision_snapshot(
+        self,
+        payment_id: str,
+        diagnosis_json: str,
+        optimization_json: str,
+        selected_strategy: str,
+        expected_recovered_amount: Decimal,
+        selection_reason: str,
+        guardrail_json: str,
+        execution_json: str,
+        created_at: str,
+    ) -> None:
+        """Persist an immutable snapshot of an executed recovery decision.
+
+        One row per payment. If a snapshot already exists it is replaced so
+        re-running POST /recover keeps the snapshot aligned with the most
+        recent legitimate execution. The endpoint is only ever written by
+        RecoveryService; GET /decision never writes here.
+        """
+        with get_connection(self.database_path) as connection:
+            connection.execute(
+                """
+                INSERT INTO decision_snapshots (
+                    payment_id, diagnosis_json, optimization_json, selected_strategy,
+                    expected_recovered_amount, selection_reason, guardrail_json,
+                    execution_json, created_at
+                ) VALUES (
+                    :payment_id, :diagnosis_json, :optimization_json, :selected_strategy,
+                    :expected_recovered_amount, :selection_reason, :guardrail_json,
+                    :execution_json, :created_at
+                )
+                ON CONFLICT(payment_id) DO UPDATE SET
+                    diagnosis_json = excluded.diagnosis_json,
+                    optimization_json = excluded.optimization_json,
+                    selected_strategy = excluded.selected_strategy,
+                    expected_recovered_amount = excluded.expected_recovered_amount,
+                    selection_reason = excluded.selection_reason,
+                    guardrail_json = excluded.guardrail_json,
+                    execution_json = excluded.execution_json,
+                    created_at = excluded.created_at
+                """,
+                {
+                    "payment_id": payment_id,
+                    "diagnosis_json": diagnosis_json,
+                    "optimization_json": optimization_json,
+                    "selected_strategy": selected_strategy,
+                    "expected_recovered_amount": str(expected_recovered_amount),
+                    "selection_reason": selection_reason,
+                    "guardrail_json": guardrail_json,
+                    "execution_json": execution_json,
+                    "created_at": created_at,
+                },
+            )
+
+    def get_decision_snapshot(self, payment_id: str) -> dict[str, Any] | None:
+        with get_connection(self.database_path) as connection:
+            row = connection.execute(
+                "SELECT * FROM decision_snapshots WHERE payment_id = ?", (payment_id,)
+            ).fetchone()
+        return _row_to_dict(row) if row else None

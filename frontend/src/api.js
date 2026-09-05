@@ -74,6 +74,15 @@ export const api = {
       method: "POST",
     });
   },
+
+  // Read-only inspection of an existing recovery decision. Used by the
+  // detail page so opening/reloading a payment does NOT execute another
+  // recovery and does NOT mutate the backend state.
+  getDecision(paymentId) {
+    return request(`/payments/${encodeURIComponent(paymentId)}/decision`, {
+      method: "GET",
+    });
+  },
 };
 
 // Canonical list of "representative" recovery-case payment IDs.
@@ -88,3 +97,41 @@ export const REPRESENTATIVE_PAYMENT_IDS = [
   "pay_demo_fraud",
   "pay_demo_subscription",
 ];
+
+// Frontend-only metadata for the six demo payments. These values are not
+// returned by the backend on the diagnose/optimize/recover endpoints, so
+// we mirror the seed values from `backend/app/demo_data.py` purely for
+// display. They must never be used to invent recovery data — diagnosis,
+// optimization, guardrails, and execution outcomes still come from the API.
+export const DEMO_PAYMENT_META = {
+  pay_demo_network: {
+    amount: 1299.00,
+    paymentMethod: "card",
+    riskLevel: "low",
+  },
+  pay_demo_funds: {
+    amount: 4999.00,
+    paymentMethod: "card",
+    riskLevel: "low",
+  },
+  pay_demo_expired: {
+    amount: 799.00,
+    paymentMethod: "card",
+    riskLevel: "medium",
+  },
+  pay_demo_decline: {
+    amount: 24999.00,
+    paymentMethod: "netbanking",
+    riskLevel: "medium",
+  },
+  pay_demo_fraud: {
+    amount: 15450.00,
+    paymentMethod: "card",
+    riskLevel: "high",
+  },
+  pay_demo_subscription: {
+    amount: 299.00,
+    paymentMethod: "upi",
+    riskLevel: "low",
+  },
+};

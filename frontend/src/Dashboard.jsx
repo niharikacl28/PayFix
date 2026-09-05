@@ -77,11 +77,12 @@ function StrategyMetricRow({ strategy, metric }) {
   // The backend returns `strategy_metrics` as an OBJECT keyed by strategy
   // name, e.g. { retry_now: { count, successful_recoveries, recovered_amount } }.
   // The strategy name comes from the KEY, not from a field inside the metric.
+  // Cell order must match the header: Strategy | Payments | Recovered.
   return (
     <tr>
-      <td className="amount">{formatINRWithCents(metric?.recovered_amount)}</td>
-      <td>{formatInt(metric?.count)}</td>
       <td>{strategyLabel(strategy)}</td>
+      <td>{formatInt(metric?.count)}</td>
+      <td className="amount">{formatINRWithCents(metric?.recovered_amount)}</td>
     </tr>
   );
 }
@@ -109,7 +110,14 @@ export default function Dashboard({ onSelectPayment }) {
       const cases = await Promise.all(
         REPRESENTATIVE_PAYMENT_IDS.map(async (id) => {
           try {
-            const decision = await api.recover(id);
+            // Read-only inspection of the persisted decision snapshot.
+            // Calling the mutating `api.recover()` here would re-execute
+            // the recovery on every page load, which after the first run
+            // either drifts into the idempotent replay path (against the
+            // already-mutated payment row) or writes a fresh snapshot,
+            // both of which produce stale/inconsistent "Expected recovery"
+            // values on a hard refresh.
+            const decision = await api.getDecision(id);
             return { paymentId: id, decision, error: null };
           } catch (err) {
             return { paymentId: id, decision: null, error: err };
@@ -173,7 +181,11 @@ export default function Dashboard({ onSelectPayment }) {
             <div className={`value ${upliftTone === "positive" ? "positive" : "warn"}`}>
               {uplift >= 0 ? "+" : "−"}{formatINR(Math.abs(uplift))}
             </div>
-            <div className="delta"><strong>{formatPctSigned(upliftPct)}</strong> over naive retry baseline</div>
+            {Number(ev.baseline_recovered) === 0 ? (
+              <div className="delta">Naive retry baseline: {formatINR(ev.baseline_recovered)}</div>
+            ) : (
+              <div className="delta"><strong>{formatPctSigned(upliftPct)}</strong> over naive retry baseline</div>
+            )}
           </div>
           <div className="hero-stat">
             <span className="label">Recovery rate</span>
@@ -230,7 +242,9 @@ export default function Dashboard({ onSelectPayment }) {
           <div>
             <div className={`uplift-pct ${upliftTone}`}>
               <Icon name="trend" size={12} />
-              {formatPctSigned(upliftPct)} vs baseline
+              {Number(ev.baseline_recovered) === 0
+                ? `+${formatINR(Math.abs(uplift))} recovered vs baseline`
+                : `${formatPctSigned(upliftPct)} vs baseline`}
             </div>
             <div className={`uplift-figure ${upliftTone}`}>
               <span className="currency">₹</span>
@@ -238,7 +252,9 @@ export default function Dashboard({ onSelectPayment }) {
             </div>
             <div className="uplift-meta">
               PayFix recovered <strong>{formatINR(ev.payfix_recovered)}</strong> against a naive retry baseline of <strong>{formatINR(ev.baseline_recovered)}</strong>.
-              Every simulated action is bounded by guardrails before execution.
+              {Number(ev.baseline_recovered) === 0
+                ? " Naive retry baseline: ₹0 — percentage uplift is undefined over a zero baseline."
+                : " Every simulated action is bounded by guardrails before execution."}
             </div>
           </div>
         </div>

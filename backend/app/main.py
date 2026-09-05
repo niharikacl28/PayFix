@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException
 
 from .database import initialize_database
+from .decision_service import DecisionService
 from .diagnosis_service import DiagnosisService, PaymentNotFoundError
 from .evaluation import BatchEvaluator
 from .optimizer import ExpectedRecoveryOptimizer
@@ -53,6 +54,25 @@ def recover_payment(payment_id: str) -> dict[str, object]:
     """Run a bounded, fully synthetic recovery workflow; no real payment action is taken."""
     try:
         result = RecoveryService(PayFixRepository()).recover_payment(payment_id)
+    except PaymentNotFoundError as error:
+        raise HTTPException(status_code=404, detail="Payment not found.") from error
+    return result.to_dict()
+
+
+@app.get("/payments/{payment_id}/decision")
+def get_payment_decision(payment_id: str) -> dict[str, object]:
+    """Return a read-only snapshot of the existing recovery decision for a payment.
+
+    This endpoint is purely for inspection: it does not execute another recovery,
+    does not run the simulated executor, and does not write to the repository.
+    Diagnosis and optimization are computed against the live row (mirroring the
+    diagnose/optimize endpoints); the selected strategy, guardrail decision, and
+    execution result are read from the already-persisted recovery_attempt and
+    audit_log rows. If no execution has happened yet, the optimizer's
+    top-ranked strategy is shown with an explicit "no execution yet" frame.
+    """
+    try:
+        result = DecisionService(PayFixRepository()).get_decision(payment_id)
     except PaymentNotFoundError as error:
         raise HTTPException(status_code=404, detail="Payment not found.") from error
     return result.to_dict()
